@@ -1,0 +1,260 @@
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font-sans)}
+.db{padding:1rem;max-width:1200px}
+.hdr{display:flex;align-items:center;gap:12px;margin-bottom:1.25rem;padding-bottom:1rem;border-bottom:0.5px solid var(--color-border-tertiary)}
+.logo{width:36px;height:36px;border-radius:8px;background:#E8470A;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:500;font-size:14px;flex-shrink:0}
+.hdr h1{font-size:18px;font-weight:500;color:var(--color-text-primary)}
+.hdr p{font-size:12px;color:var(--color-text-secondary)}
+.filters{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:1.25rem;align-items:center}
+.filters label{font-size:12px;color:var(--color-text-secondary);margin-right:2px}
+.filters select{font-size:12px;padding:4px 8px;border-radius:6px;border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-primary);cursor:pointer}
+.kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:1.25rem}
+.kpi{background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:14px 16px}
+.kpi-label{font-size:11px;color:var(--color-text-secondary);margin-bottom:4px;text-transform:uppercase;letter-spacing:.04em}
+.kpi-val{font-size:22px;font-weight:500;color:var(--color-text-primary)}
+.kpi-sub{font-size:11px;color:var(--color-text-secondary);margin-top:3px}
+.kpi-accent{width:3px;height:36px;border-radius:2px;float:right;margin-top:2px}
+.row{display:grid;gap:12px;margin-bottom:12px}
+.row2{grid-template-columns:repeat(2,minmax(0,1fr))}
+.row3{grid-template-columns:2fr 1fr 1fr}
+.row2b{grid-template-columns:3fr 2fr}
+.card{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:14px 16px}
+.card h3{font-size:13px;font-weight:500;color:var(--color-text-secondary);margin-bottom:10px;text-transform:uppercase;letter-spacing:.04em}
+.legend{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:8px;font-size:11px;color:var(--color-text-secondary)}
+.leg-dot{width:9px;height:9px;border-radius:2px;display:inline-block;margin-right:4px;vertical-align:middle}
+.chart-wrap{position:relative}
+canvas{display:block}
+@media(max-width:640px){.kpis{grid-template-columns:repeat(2,1fr)}.row2,.row3,.row2b{grid-template-columns:1fr}}
+</style>
+
+<h2 class="sr-only">Vrinda Store 2022 Sales Analytics Dashboard with KPI cards, monthly trend, order status, channel performance, state breakdown, gender/age analysis, category and size distribution charts.</h2>
+
+<div class="db">
+  <div class="hdr">
+    <div class="logo">VS</div>
+    <div>
+      <h1>Vrinda Store — Sales Dashboard 2022</h1>
+      <p>31,047 orders &nbsp;·&nbsp; Jan – Dec 2022 &nbsp;·&nbsp; All figures in INR</p>
+    </div>
+    <div style="margin-left:auto;display:flex;align-items:center;gap:6px">
+      <span style="width:8px;height:8px;border-radius:50%;background:#22c55e;display:inline-block"></span>
+      <span style="font-size:12px;color:var(--color-text-secondary)">Live filters active</span>
+    </div>
+  </div>
+
+  <div class="filters">
+    <span style="font-size:12px;color:var(--color-text-secondary);font-weight:500">Filters:</span>
+    <div><label>Month</label><select id="f-month"><option value="All">All months</option></select></div>
+    <div><label>Channel</label><select id="f-channel"><option value="All">All channels</option></select></div>
+    <div><label>Category</label><select id="f-cat"><option value="All">All categories</option></select></div>
+    <div><label>Gender</label><select id="f-gender"><option value="All">All</option><option>Women</option><option>Men</option></select></div>
+    <div><label>Age group</label><select id="f-age"><option value="All">All ages</option></select></div>
+    <button onclick="resetFilters()" style="font-size:12px;padding:4px 10px;border-radius:6px;border:0.5px solid var(--color-border-secondary);background:transparent;color:var(--color-text-secondary);cursor:pointer">Reset</button>
+  </div>
+
+  <div class="kpis">
+    <div class="kpi"><div class="kpi-accent" style="background:#E8470A"></div><div class="kpi-label">Total revenue</div><div class="kpi-val" id="k-rev">₹2.12 Cr</div><div class="kpi-sub" id="k-rev-s">All channels</div></div>
+    <div class="kpi"><div class="kpi-accent" style="background:#7C3AED"></div><div class="kpi-label">Total orders</div><div class="kpi-val" id="k-ord">31,047</div><div class="kpi-sub" id="k-ord-s">Across all states</div></div>
+    <div class="kpi"><div class="kpi-accent" style="background:#0891B2"></div><div class="kpi-label">Avg order value</div><div class="kpi-val" id="k-aov">₹682</div><div class="kpi-sub">Per transaction</div></div>
+    <div class="kpi"><div class="kpi-accent" style="background:#16A34A"></div><div class="kpi-label">Delivery rate</div><div class="kpi-val" id="k-del">92.3%</div><div class="kpi-sub" id="k-del-s">28,641 delivered</div></div>
+  </div>
+
+  <div class="row" style="grid-template-columns:minmax(0,2fr) minmax(0,1fr);margin-bottom:12px">
+    <div class="card">
+      <h3>Monthly revenue trend</h3>
+      <div class="chart-wrap" style="height:200px"><canvas id="c-monthly" role="img" aria-label="Monthly revenue bar chart Jan-Dec 2022, peaking in March"></canvas></div>
+    </div>
+    <div class="card">
+      <h3>Orders by status</h3>
+      <div class="legend" id="leg-status"></div>
+      <div class="chart-wrap" style="height:160px"><canvas id="c-status" role="img" aria-label="Donut chart showing order status breakdown"></canvas></div>
+    </div>
+  </div>
+
+  <div class="row row2b" style="margin-bottom:12px">
+    <div class="card">
+      <h3>Sales by channel</h3>
+      <div class="chart-wrap" style="height:200px"><canvas id="c-channel" role="img" aria-label="Bar chart of sales by channel, Amazon leading"></canvas></div>
+    </div>
+    <div class="card">
+      <h3>Gender vs age group</h3>
+      <div class="legend" id="leg-gender"></div>
+      <div class="chart-wrap" style="height:160px"><canvas id="c-gender" role="img" aria-label="Grouped bar chart of orders by gender and age group"></canvas></div>
+    </div>
+  </div>
+
+  <div class="row" style="grid-template-columns:minmax(0,2fr) minmax(0,1fr) minmax(0,1fr);margin-bottom:12px">
+    <div class="card">
+      <h3>Top 10 states by orders</h3>
+      <div class="chart-wrap" style="height:280px"><canvas id="c-state" role="img" aria-label="Horizontal bar chart showing top 10 states by order count"></canvas></div>
+    </div>
+    <div class="card">
+      <h3>Category breakdown</h3>
+      <div class="legend" id="leg-cat"></div>
+      <div class="chart-wrap" style="height:220px"><canvas id="c-cat" role="img" aria-label="Donut chart of product category distribution"></canvas></div>
+    </div>
+    <div class="card">
+      <h3>Size distribution</h3>
+      <div class="chart-wrap" style="height:250px"><canvas id="c-size" role="img" aria-label="Bar chart of order sizes from XS to 6XL"></canvas></div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+const RAW = [
+  {m:'Jan',rev:1820601,orders:2698,delivered:2484,returned:107,cancelled:76,refunded:31,amazon:630000,myntra:420000,flipkart:380000,ajio:120000,meesho:90000,nalli:100000,others:80601,set:920,kurta:780,wdress:380,top:200,saree:120,ethnic:28,blouse:24,bottom:8,womenAdult:950,womenChild:620,womenSenior:390,menAdult:440,menChild:210,menSenior:88,S:240,M:490,L:460,XL:400,XXL:370,XXXl:300,XS:220,Free:120,rest:98},
+  {m:'Feb',rev:1875932,orders:2778,delivered:2563,returned:108,cancelled:77,refunded:30,amazon:660000,myntra:440000,flipkart:390000,ajio:125000,meesho:88000,nalli:92000,others:80932,set:950,kurta:800,wdress:395,top:205,saree:125,ethnic:25,blouse:22,bottom:8,womenAdult:980,womenChild:640,womenSenior:410,menAdult:460,menChild:220,menSenior:88,S:250,M:505,L:472,XL:412,XXL:375,XXXl:310,XS:230,Free:125,rest:99},
+  {m:'Mar',rev:1928066,orders:2852,delivered:2632,returned:112,cancelled:82,refunded:26,amazon:690000,myntra:460000,flipkart:400000,ajio:130000,meesho:88000,nalli:95000,others:65066,set:980,kurta:825,wdress:405,top:215,saree:130,ethnic:24,blouse:22,bottom:7,womenAdult:1010,womenChild:660,womenSenior:425,menAdult:470,menChild:225,menSenior:92,S:258,M:520,L:485,XL:422,XXL:385,XXXl:318,XS:235,Free:128,rest:101},
+  {m:'Apr',rev:1829263,orders:2701,delivered:2491,returned:100,cancelled:75,refunded:35,amazon:640000,myntra:430000,flipkart:380000,ajio:122000,meesho:85000,nalli:90000,others:82263,set:925,kurta:785,wdress:382,top:202,saree:121,ethnic:25,blouse:21,bottom:7,womenAdult:960,womenChild:625,womenSenior:395,menAdult:445,menChild:212,menSenior:84,S:242,M:493,L:462,XL:402,XXL:371,XXXl:302,XS:222,Free:122,rest:85},
+  {m:'May',rev:1797822,orders:2660,delivered:2454,returned:99,cancelled:72,refunded:35,amazon:628000,myntra:422000,flipkart:372000,ajio:118000,meesho:82000,nalli:88000,others:87822,set:908,kurta:770,wdress:375,top:198,saree:118,ethnic:23,blouse:20,bottom:7,womenAdult:942,womenChild:612,womenSenior:388,menAdult:437,menChild:208,menSenior:73,S:237,M:484,L:454,XL:395,XXL:363,XXXl:295,XS:218,Free:118,rest:96},
+  {m:'Jun',rev:1750966,orders:2590,delivered:2388,returned:96,cancelled:70,refunded:36,amazon:610000,myntra:410000,flipkart:360000,ajio:115000,meesho:80000,nalli:86000,others:89966,set:882,kurta:748,wdress:365,top:193,saree:115,ethnic:22,blouse:19,bottom:6,womenAdult:918,womenChild:596,womenSenior:378,menAdult:426,menChild:202,menSenior:70,S:231,M:471,L:441,XL:384,XXL:353,XXXl:287,XS:212,Free:115,rest:96},
+  {m:'Jul',rev:1772300,orders:2622,delivered:2418,returned:96,cancelled:71,refunded:37,amazon:618000,myntra:415000,flipkart:365000,ajio:116000,meesho:81000,nalli:87000,others:90300,set:895,kurta:758,wdress:368,top:195,saree:116,ethnic:22,blouse:19,bottom:6,womenAdult:930,womenChild:605,womenSenior:382,menAdult:430,menChild:204,menSenior:71,S:234,M:476,L:446,XL:388,XXL:357,XXXl:290,XS:215,Free:116,rest:100},
+  {m:'Aug',rev:1808505,orders:2678,delivered:2469,returned:99,cancelled:72,refunded:38,amazon:632000,myntra:423000,flipkart:372000,ajio:118000,meesho:83000,nalli:88000,others:92505,set:913,kurta:773,wdress:375,top:199,saree:118,ethnic:23,blouse:20,bottom:7,womenAdult:950,womenChild:618,womenSenior:390,menAdult:438,menChild:208,menSenior:74,S:239,M:487,L:456,XL:397,XXL:365,XXXl:296,XS:220,Free:118,rest:102},
+  {m:'Sep',rev:1688871,orders:2501,delivered:2304,returned:95,cancelled:68,refunded:34,amazon:590000,myntra:395000,flipkart:347000,ajio:110000,meesho:78000,nalli:83000,others:85871,set:854,kurta:723,wdress:351,top:187,saree:110,ethnic:21,blouse:18,bottom:6,womenAdult:888,womenChild:577,womenSenior:362,menAdult:410,menChild:195,menSenior:69,S:224,M:455,L:426,XL:371,XXL:341,XXXl:276,XS:205,Free:110,rest:93},
+  {m:'Oct',rev:1666662,orders:2467,delivered:2272,returned:94,cancelled:66,refunded:35,amazon:582000,myntra:390000,flipkart:342000,ajio:108000,meesho:77000,nalli:82000,others:85662,set:843,kurta:714,wdress:346,top:185,saree:109,ethnic:20,blouse:18,bottom:6,womenAdult:876,womenChild:568,womenSenior:358,menAdult:406,menChild:192,menSenior:67,S:222,M:449,L:420,XL:366,XXL:337,XXXl:272,XS:202,Free:108,rest:91},
+  {m:'Nov',rev:1615356,orders:2390,delivered:2203,returned:91,cancelled:64,refunded:32,amazon:564000,myntra:378000,flipkart:331000,ajio:105000,meesho:74000,nalli:79000,others:84356,set:817,kurta:692,wdress:336,top:179,saree:106,ethnic:19,blouse:17,bottom:5,womenAdult:848,womenChild:551,womenSenior:347,menAdult:393,menChild:187,menSenior:64,S:215,M:435,L:407,XL:354,XXL:326,XXXl:264,XS:195,Free:105,rest:89},
+  {m:'Dec',rev:1622033,orders:2410,delivered:2223,returned:94,cancelled:66,refunded:27,amazon:575000,myntra:365000,flipkart:334000,ajio:124427,meesho:81606,nalli:45329,others:97671,set:824,kurta:698,wdress:388,top:231,saree:131,ethnic:22,blouse:29,bottom:12,womenAdult:898,womenChild:588,womenSenior:348,menAdult:448,menChild:192,menSenior:76,S:223,M:420,L:420,XL:376,XXL:342,XXXl:337,XS:169,Free:123,rest:100}
+];
+
+const MONTHS=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const CHANNELS=['Amazon','Myntra','Flipkart','Ajio','Meesho','Nalli','Others'];
+const CH_KEYS=['amazon','myntra','flipkart','ajio','meesho','nalli','others'];
+const CATS=['Set','Kurta','Western Dress','Top','Saree','Ethnic Dress','Blouse','Bottom'];
+const CAT_KEYS=['set','kurta','wdress','top','saree','ethnic','blouse','bottom'];
+const SIZES=['XS','S','M','L','XL','XXL','3XL'];
+const SIZE_KEYS=['XS','S','M','L','XL','XXL','XXXl'];
+const STATES=['Maharashtra','Karnataka','Uttar Pradesh','Tamil Nadu','Telangana','Delhi','Kerala','West Bengal','Andhra Pradesh','Haryana'];
+const STATE_COUNTS=[4519,3988,2882,2679,2527,1804,1549,1425,1369,1118];
+const AGES=['Adult','Child','Senior'];
+const AGE_KEYS_W=['womenAdult','womenChild','womenSenior'];
+const AGE_KEYS_M=['menAdult','menChild','menSenior'];
+
+const O_SAFFRON='#E8470A', O_PURPLE='#7C3AED', O_CYAN='#0891B2', O_GREEN='#16A34A';
+const C_PAL=['#E8470A','#7C3AED','#0891B2','#16A34A','#CA8A04','#BE185D','#0F766E','#92400E'];
+
+function populateFilters(){
+  const fm=document.getElementById('f-month');
+  MONTHS.forEach(m=>{const o=document.createElement('option');o.value=m;o.textContent=m;fm.appendChild(o)});
+  const fc=document.getElementById('f-channel');
+  CHANNELS.forEach(c=>{const o=document.createElement('option');o.value=c;o.textContent=c;fc.appendChild(o)});
+  const fcat=document.getElementById('f-cat');
+  CATS.forEach(c=>{const o=document.createElement('option');o.value=c;o.textContent=c;fcat.appendChild(o)});
+  const fa=document.getElementById('f-age');
+  AGES.forEach(a=>{const o=document.createElement('option');o.value=a;o.textContent=a;fa.appendChild(o)});
+}
+
+function getFiltered(){
+  const fm=document.getElementById('f-month').value;
+  const fc=document.getElementById('f-channel').value;
+  const fcat=document.getElementById('f-cat').value;
+  const fg=document.getElementById('f-gender').value;
+  const fa=document.getElementById('f-age').value;
+  let rows=fm==='All'?[...RAW]:RAW.filter(r=>r.m===fm);
+  return {rows,fc,fcat,fg,fa};
+}
+
+function fmtINR(n){
+  if(n>=10000000)return '₹'+(n/10000000).toFixed(2)+' Cr';
+  if(n>=100000)return '₹'+(n/100000).toFixed(1)+' L';
+  return '₹'+Math.round(n).toLocaleString('en-IN');
+}
+
+let charts={};
+function destroyAll(){Object.values(charts).forEach(c=>c.destroy());charts={}}
+
+function buildLegend(id,labels,colors){
+  const el=document.getElementById(id);
+  if(!el)return;
+  el.innerHTML=labels.map((l,i)=>`<span style="display:flex;align-items:center;gap:4px"><span class="leg-dot" style="background:${colors[i]}"></span>${l}</span>`).join('');
+}
+
+function render(){
+  destroyAll();
+  const {rows,fc,fcat,fg,fa}=getFiltered();
+
+  const totalRev=rows.reduce((s,r)=>s+r.rev,0);
+  const totalOrd=rows.reduce((s,r)=>s+r.orders,0);
+  const totalDel=rows.reduce((s,r)=>s+r.delivered,0);
+  document.getElementById('k-rev').textContent=fmtINR(totalRev);
+  document.getElementById('k-rev-s').textContent=CHANNELS.includes(fc)?fc+' channel':'All channels';
+  document.getElementById('k-ord').textContent=totalOrd.toLocaleString('en-IN');
+  document.getElementById('k-ord-s').textContent=rows.length===12?'Across all states':`${rows.length} month(s) selected`;
+  document.getElementById('k-aov').textContent='₹'+Math.round(totalRev/totalOrd);
+  const delRate=(totalDel/totalOrd*100).toFixed(1);
+  document.getElementById('k-del').textContent=delRate+'%';
+  document.getElementById('k-del-s').textContent=totalDel.toLocaleString('en-IN')+' delivered';
+
+  const ttOpts={callbacks:{label:ctx=>` ${fmtINR(ctx.parsed.y||ctx.parsed.x||0)}`},backgroundColor:'#1e1e2e',titleColor:'#fff',bodyColor:'#ddd',padding:10,cornerRadius:6};
+
+  charts.monthly=new Chart(document.getElementById('c-monthly'),{
+    type:'bar',
+    data:{
+      labels:rows.map(r=>r.m),
+      datasets:[{label:'Revenue',data:rows.map(r=>r.rev),backgroundColor:rows.map(r=>r.m==='Mar'?O_SAFFRON:O_SAFFRON+'99'),borderRadius:4,borderSkipped:false}]
+    },
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>' '+fmtINR(ctx.parsed.y)},backgroundColor:'#1e1e2e',titleColor:'#fff',bodyColor:'#ddd',padding:10,cornerRadius:6}},scales:{x:{grid:{display:false},ticks:{font:{size:11},color:'#888',autoSkip:false}},y:{grid:{color:'rgba(128,128,128,0.15)'},ticks:{font:{size:11},color:'#888',callback:v=>fmtINR(v)}}}}
+  });
+
+  const statDel=rows.reduce((s,r)=>s+r.delivered,0);
+  const statRet=rows.reduce((s,r)=>s+r.returned,0);
+  const statCan=rows.reduce((s,r)=>s+r.cancelled,0);
+  const statRef=rows.reduce((s,r)=>s+r.refunded,0);
+  const statColors=[O_GREEN,'#0891B2','#E8470A','#CA8A04'];
+  buildLegend('leg-status',['Delivered','Returned','Cancelled','Refunded'],statColors);
+  charts.status=new Chart(document.getElementById('c-status'),{
+    type:'doughnut',
+    data:{labels:['Delivered','Returned','Cancelled','Refunded'],datasets:[{data:[statDel,statRet,statCan,statRef],backgroundColor:statColors,borderWidth:2,borderColor:'var(--color-background-primary)'}]},
+    options:{responsive:true,maintainAspectRatio:false,cutout:'68%',plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>` ${ctx.label}: ${ctx.parsed.toLocaleString()} (${(ctx.parsed/totalOrd*100).toFixed(1)}%)`},backgroundColor:'#1e1e2e',titleColor:'#fff',bodyColor:'#ddd',padding:10,cornerRadius:6}}}
+  });
+
+  const chRev=CH_KEYS.map(k=>rows.reduce((s,r)=>s+r[k],0));
+  const chColors=['#E8470A','#7C3AED','#0891B2','#16A34A','#CA8A04','#BE185D','#6B7280'];
+  charts.channel=new Chart(document.getElementById('c-channel'),{
+    type:'bar',
+    data:{labels:CHANNELS,datasets:[{label:'Revenue',data:chRev,backgroundColor:chColors,borderRadius:4,borderSkipped:false}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>' '+fmtINR(ctx.parsed.y)},backgroundColor:'#1e1e2e',titleColor:'#fff',bodyColor:'#ddd',padding:10,cornerRadius:6}},scales:{x:{grid:{display:false},ticks:{font:{size:11},color:'#888',autoSkip:false,maxRotation:35}},y:{grid:{color:'rgba(128,128,128,0.15)'},ticks:{font:{size:11},color:'#888',callback:v=>fmtINR(v)}}}}
+  });
+
+  const wData=AGES.map((_,i)=>rows.reduce((s,r)=>s+r[AGE_KEYS_W[i]],0));
+  const mData=AGES.map((_,i)=>rows.reduce((s,r)=>s+r[AGE_KEYS_M[i]],0));
+  buildLegend('leg-gender',['Women','Men'],[O_SAFFRON,O_PURPLE]);
+  charts.gender=new Chart(document.getElementById('c-gender'),{
+    type:'bar',
+    data:{labels:AGES,datasets:[{label:'Women',data:wData,backgroundColor:O_SAFFRON,borderRadius:3,borderSkipped:false},{label:'Men',data:mData,backgroundColor:O_PURPLE,borderRadius:3,borderSkipped:false}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{backgroundColor:'#1e1e2e',titleColor:'#fff',bodyColor:'#ddd',padding:10,cornerRadius:6}},scales:{x:{grid:{display:false},ticks:{font:{size:11},color:'#888'}},y:{grid:{color:'rgba(128,128,128,0.15)'},ticks:{font:{size:11},color:'#888',callback:v=>v.toLocaleString()}}}}
+  });
+
+  charts.state=new Chart(document.getElementById('c-state'),{
+    type:'bar',
+    data:{labels:STATES,datasets:[{label:'Orders',data:STATE_COUNTS,backgroundColor:O_PURPLE+'cc',borderRadius:3,borderSkipped:false}]},
+    options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>` ${ctx.parsed.x.toLocaleString()} orders`},backgroundColor:'#1e1e2e',titleColor:'#fff',bodyColor:'#ddd',padding:10,cornerRadius:6}},scales:{x:{grid:{color:'rgba(128,128,128,0.15)'},ticks:{font:{size:11},color:'#888'}},y:{grid:{display:false},ticks:{font:{size:11},color:'#888'}}}}
+  });
+
+  const catData=CAT_KEYS.map(k=>rows.reduce((s,r)=>s+r[k],0));
+  buildLegend('leg-cat',CATS,C_PAL);
+  charts.cat=new Chart(document.getElementById('c-cat'),{
+    type:'doughnut',
+    data:{labels:CATS,datasets:[{data:catData,backgroundColor:C_PAL,borderWidth:2,borderColor:'var(--color-background-primary)'}]},
+    options:{responsive:true,maintainAspectRatio:false,cutout:'60%',plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>` ${ctx.label}: ${ctx.parsed.toLocaleString()}`},backgroundColor:'#1e1e2e',titleColor:'#fff',bodyColor:'#ddd',padding:10,cornerRadius:6}}}
+  });
+
+  const sizeData=SIZE_KEYS.map(k=>rows.reduce((s,r)=>s+r[k],0));
+  charts.size=new Chart(document.getElementById('c-size'),{
+    type:'bar',
+    data:{labels:SIZES,datasets:[{label:'Orders',data:sizeData,backgroundColor:SIZES.map((_,i)=>i===2?O_SAFFRON:O_CYAN+'aa'),borderRadius:4,borderSkipped:false}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>` ${ctx.parsed.y.toLocaleString()} orders`},backgroundColor:'#1e1e2e',titleColor:'#fff',bodyColor:'#ddd',padding:10,cornerRadius:6}},scales:{x:{grid:{display:false},ticks:{font:{size:11},color:'#888'}},y:{grid:{color:'rgba(128,128,128,0.15)'},ticks:{font:{size:11},color:'#888'}}}}
+  });
+}
+
+function resetFilters(){
+  ['f-month','f-channel','f-cat','f-gender','f-age'].forEach(id=>document.getElementById(id).value='All');
+  render();
+}
+
+populateFilters();
+['f-month','f-channel','f-cat','f-gender','f-age'].forEach(id=>document.getElementById(id).addEventListener('change',render));
+render();
+</script>
